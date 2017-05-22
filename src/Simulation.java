@@ -21,6 +21,7 @@ public class Simulation {
         DoSchedule(getProcesses(), scale, new ShortestTimeRemainingScheduler("ShortestTimeRemainingScheduler"));
 
         DoSchedule(getProcesses(), scale, new RoundRobinScheduler("RoundRobinScheduler").setQuantumScale(5));
+        DoSchedule(getProcesses(), scale, new PriorityScheduler("PriorityScheduler"));
     }
 
     private static List<Process> getProcesses() {
@@ -32,8 +33,8 @@ public class Simulation {
         p3Queue.add(new MyPair<>(Resource.CPU, 10));
         List<Process> processes = new ArrayList<>();
         processes.add(new Process(1, 1, 100, p1Queue));
-        processes.add(new Process(5, 2, 120, p2Queue));
-        processes.add(new Process(5, 3, 130, p3Queue));
+        processes.add(new Process(50, 2, 120, p2Queue));
+        processes.add(new Process(9999, 3, 130, p3Queue));
         return processes;
     }
 
