@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.List;
 
 /**
@@ -7,13 +5,13 @@ import java.util.List;
  */
 class SimulationResult {
 
-    private List<Pair<Integer, Process>> Result;
+    private List<MyPair<Integer, Process>> Result;
 
-    SimulationResult(List<Pair<Integer, Process>> result) {
+    SimulationResult(List<MyPair<Integer, Process>> result) {
         Result = result;
     }
 
-    List<Pair<Integer, Process>> getResult() {
+    List<MyPair<Integer, Process>> getResult() {
         return Result;
     }
 }

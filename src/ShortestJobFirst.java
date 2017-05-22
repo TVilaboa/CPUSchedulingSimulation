@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,9 +12,9 @@ public class ShortestJobFirst extends SchedulingAlgorithm {
 
     @Override
     public SimulationResult Schedule(List<Process> processList) {
-        processList.sort(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(Pair::getValue).sum()));
-        List<Pair<Integer, Process>> result = new ArrayList<>();
-        processList.forEach((process -> result.add(new Pair<>(process.getResources().stream().mapToInt(Pair::getValue).sum(),
+        processList.sort(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()));
+        List<MyPair<Integer, Process>> result = new ArrayList<>();
+        processList.forEach((process -> result.add(new MyPair<>(process.getResources().stream().mapToInt(MyPair::getValue).sum(),
                 process))));
         return new SimulationResult(result);
     }

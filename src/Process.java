@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.Queue;
 
 /**
@@ -10,9 +8,9 @@ public class Process {
     private int Priority;
     private int ID;
     private int ArrivalTime;
-    private Queue<Pair<Resource, Integer>> Resources;
+    private Queue<MyPair<Resource, Integer>> Resources;
 
-    Process(int priority, int ID, int arrivalTime, Queue<Pair<Resource, Integer>> resources) {
+    Process(int priority, int ID, int arrivalTime, Queue<MyPair<Resource, Integer>> resources) {
         Priority = priority;
         this.ID = ID;
         ArrivalTime = arrivalTime;
@@ -31,7 +29,9 @@ public class Process {
         return ArrivalTime;
     }
 
-    Queue<Pair<Resource, Integer>> getResources() {
+    Queue<MyPair<Resource, Integer>> getResources() {
         return Resources;
     }
+
+
 }
