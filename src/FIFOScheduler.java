@@ -14,8 +14,13 @@ public class FIFOScheduler extends SchedulingAlgorithm {
     public SimulationResult Schedule(List<Process> processList) {
         processList.sort(Comparator.comparingInt(Process::getArrivalTime));
         List<MyPair<Integer, Process>> result = new ArrayList<>();
-        processList.forEach((process -> result.add(new MyPair<>(process.getResources().stream().mapToInt(MyPair::getValue).sum(),
-                process))));
+        final int[] elapsedTime = {processList.stream().min(Comparator.comparingInt(Process::getArrivalTime)).get().getArrivalTime()};
+        processList.forEach(
+                process -> {
+                    int processTime = process.getResources().stream().mapToInt(MyPair::getValue).sum();
+                    elapsedTime[0] += processTime;
+                    result.add(new MyPair<>(elapsedTime[0], process));
+                });
         return new SimulationResult(result);
     }
 }

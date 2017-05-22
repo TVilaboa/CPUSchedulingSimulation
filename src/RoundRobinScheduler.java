@@ -8,7 +8,7 @@ public class RoundRobinScheduler extends SchedulingAlgorithm {
 
     private int quantumScale = 1;
 
-    public RoundRobinScheduler(String name) {
+    RoundRobinScheduler(String name) {
         super(name);
     }
 
@@ -16,8 +16,10 @@ public class RoundRobinScheduler extends SchedulingAlgorithm {
         return quantumScale;
     }
 
-    public void setQuantumScale(int quantumScale) {
+    RoundRobinScheduler setQuantumScale(int quantumScale) {
         this.quantumScale = quantumScale;
+        return this;
+
     }
 
     @Override
@@ -25,7 +27,8 @@ public class RoundRobinScheduler extends SchedulingAlgorithm {
         List<MyPair<Integer, Process>> result = new ArrayList<>();
         Deque<Process> running = new ArrayDeque<>();
         Process empty = new Process(0, 0, 99999, new ConcurrentLinkedQueue<>());
-        int totalTime = processList.stream().mapToInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()).sum();
+        int totalTime = processList.stream().min(Comparator.comparingInt(Process::getArrivalTime)).get().getArrivalTime()
+                + processList.stream().mapToInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()).sum();
         processList.sort(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()));
         for (int quantum = 0; quantum < totalTime; quantum += quantumScale) {
             // Add new arrivals to the list of running processes.
@@ -45,8 +48,14 @@ public class RoundRobinScheduler extends SchedulingAlgorithm {
                 // Decrement the running process's burst time. If it's done, remove
                 // it from the running list.
                 MyPair<Resource, Integer> resource = selectedProcess.getResources().peek();
-                resource.setValue(resource.getValue() - quantum);
-                running.removeFirst();
+                resource.setValue(resource.getValue() - quantumScale);
+                if (resource.getValue() <= 0) {
+                    selectedProcess.getResources().remove();
+                }
+                if (selectedProcess.getResources().isEmpty()) {
+                    running.removeFirst();
+                }
+
 
                 // Record the run for this quantum.
                 result.add(new MyPair<>(quantum + quantumScale, selectedProcess));

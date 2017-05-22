@@ -1,34 +1,69 @@
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Tom�s on 15/05/2017.
  */
 public class ShortestTimeRemainingScheduler extends SchedulingAlgorithm {
-    public ShortestTimeRemainingScheduler(String name) {
+    ShortestTimeRemainingScheduler(String name) {
         super(name);
     }
 
     @Override
     public SimulationResult Schedule(List<Process> processList) {
-        //Una opcion puede ser hacer una lista con todos los ms desde el arriva hasta que terminaria el ultimo y por cada ms evaluar que proceso corresponde.
-        // SE guarda cual es el current y cuando cambia se agrega un process al resultado.
-        //processList.sort(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(Pair::getValue).sum()));
-        processList.sort(Comparator.comparingInt(Process::getArrivalTime));
         List<MyPair<Integer, Process>> result = new ArrayList<>();
-       /* for (Process process : processList) {
-            int finishTime = process.getArrivalTime() + process.getResources().stream().mapToInt(Pair::getValue).sum();
-            Stream<Process> fasterProcesses = processList.stream().filter(p -> p.getArrivalTime() + p.getResources().stream().mapToInt(Pair::getValue).sum() < finishTime)
-                    .sorted(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(Pair::getValue).sum()));
+        List<Process> running = new ArrayList<>();
+        Process empty = new Process(0, 0, 99999, new ConcurrentLinkedQueue<>());
+        int totalTime = processList.stream().min(Comparator.comparingInt(Process::getArrivalTime)).get().getArrivalTime()
+                + processList.stream().mapToInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()).sum();
+        processList.sort(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()));
+        ConcurrentLinkedQueue<MyPair<Resource, Integer>> pQueue = new ConcurrentLinkedQueue<>();
+        pQueue.add(new MyPair<>(Resource.CPU, Integer.MAX_VALUE));
+        final Process[] current = {new Process(0, 0, 99999, pQueue)};
 
-        }*/
-        int totalTime = processList.stream().mapToInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()).sum();
-       /* IntStream.range(processList.get(0).getArrivalTime(), processList.get(0).getArrivalTime() + totalTime).forEach(
-            ms ->
-        );*/
+        for (int quantum = 0; quantum < totalTime; quantum++) {
 
-        //processList.forEach((process -> result.add(new Pair<>(process.getResources().stream().mapToInt(Pair::getValue).sum(),                process))));
+
+            for (Process process : processList) {
+                if (quantum == process.getArrivalTime()) {
+                    running.add(process);
+
+                }
+            }
+
+            if (running.isEmpty())
+                result.add(new MyPair<>(quantum, empty));
+            else {
+
+                if (current[0] != null) {
+                    int finishTime = current[0].getResources().stream().mapToInt(MyPair::getValue).sum();
+                    running.stream().filter(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum() < finishTime)
+                            .min(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum())).ifPresent(p -> current[0] = p);
+                } else {
+                    running.stream().min(Comparator.comparingInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum())).ifPresent(p -> current[0] = p);
+
+                }
+
+
+                MyPair<Resource, Integer> resource = current[0].getResources().peek();
+                resource.setValue(resource.getValue() - 1);
+                if (resource.getValue() <= 0) {
+                    current[0].getResources().remove();
+                }
+                if (current[0].getResources().isEmpty()) {
+                    running.remove(current[0]);
+                    current[0] = new Process(0, 0, 99999, pQueue);
+                }
+
+
+                result.add(new MyPair<>(quantum, current[0]));
+
+
+            }
+        }
         return new SimulationResult(result);
+
     }
 }
