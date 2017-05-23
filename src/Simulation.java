@@ -1,5 +1,3 @@
-
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
@@ -55,16 +53,22 @@ public class Simulation extends Application {
         XYChart.Series<Number, String> resultSeries = new XYChart.Series<>();
         resultSeries.setName(scheduler.getName());
         boolean first = true;
+        int prevProcessId = 0;
+        int totalTime = processes.stream().min(Comparator.comparingInt(Process::getArrivalTime)).get().getArrivalTime()
+                + processes.stream().mapToInt(p -> p.getResources().stream().mapToInt(MyPair::getValue).sum()).sum();
         for (MyPair<Integer, Process> process : scheduler.Schedule(processes).getResult().stream().filter(p -> p.getValue().getID() != 0).collect(Collectors.toList())) {
 
             int prevMs = ms;
             if (first) {
-                resultSeries.getData().add(new XYChart.Data<Number, String>(prevMs, "P " + process.getValue().getID()));
+                resultSeries.getData().add(new XYChart.Data<>(prevMs, "P " + process.getValue().getID()));
                 first = false;
             }
             ms = process.getKey() * scale;
             System.out.println("ms " + prevMs + " - " + ms + " : " + process.getValue().getID());
-            resultSeries.getData().add(new XYChart.Data<Number, String>(ms, "P " + process.getValue().getID()));
+            if (process.getValue().getID() != prevProcessId || process.getKey() >= totalTime * 0.98) {
+                resultSeries.getData().add(new XYChart.Data<>(ms, "P " + process.getValue().getID()));
+                prevProcessId = process.getValue().getID();
+            }
         }
         series.add(resultSeries);
     }
@@ -77,29 +81,23 @@ public class Simulation extends Application {
         yAxis.setLabel("Process");
         xAxis.setLabel("ms");
         final LineChart<Number, String> lineChart =
-                new LineChart<Number, String>(xAxis, yAxis);
+                new LineChart<>(xAxis, yAxis);
 
         lineChart.setTitle("CPUSchedulingSimulation");
 
-        /*XYChart.Series series1 = new XYChart.Series();
-        series1.setName("Portfolio 1");
 
-        series1.getData().add(new XYChart.Data("Jan", 23));
-        series1.getData().add(new XYChart.Data("Feb", 14));
-        series1.getData().add(new XYChart.Data("Mar", 15));
-        series1.getData().add(new XYChart.Data("Apr", 24));
-        series1.getData().add(new XYChart.Data("May", 34));
-        series1.getData().add(new XYChart.Data("Jun", 36));
-        series1.getData().add(new XYChart.Data("Jul", 22));
-        series1.getData().add(new XYChart.Data("Aug", 45));
-        series1.getData().add(new XYChart.Data("Sep", 43));
-        series1.getData().add(new XYChart.Data("Oct", 17));
-        series1.getData().add(new XYChart.Data("Nov", 29));
-        series1.getData().add(new XYChart.Data("Dec", 25));*/
 
 
         Scene scene = new Scene(lineChart, 800, 600);
-        series.forEach(s -> lineChart.getData().add(s));
+       /* EventHandler<MouseEvent> onMouseEnteredSeriesListener =
+                (MouseEvent event) -> {
+                    ((Node) (event.getSource())).setVisible(!((Node) (event.getSource())).isVisible());
+                };*/
+        series.forEach(s -> {
+
+            lineChart.getData().add(s);
+            // s.getNode().setOnMouseClicked(onMouseEnteredSeriesListener);
+        });
 
         stage.setScene(scene);
         stage.show();
